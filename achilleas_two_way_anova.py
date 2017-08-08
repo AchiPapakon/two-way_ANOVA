@@ -2,18 +2,18 @@ from __future__ import division
 
 import tkinter as tk
 import tkinter.messagebox
-import re
+# import re
 import pandas as pd
-import numpy as np
-from scipy.stats import ttest_ind
+# import numpy as np
+# from scipy.stats import ttest_ind
 import csv
 from statsmodels.graphics.factorplots import interaction_plot
 import matplotlib.pyplot as plt
-from scipy import stats
+# from scipy import stats
 import operator
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
-from statsmodels.graphics.factorplots import interaction_plot
+import statsmodels.api as sm
 
 
 class App(tk.Tk):
@@ -157,30 +157,34 @@ class App(tk.Tk):
             tkinter.messagebox.showinfo('Two-way ANOVA', 'You must have at least 2 values for each group.')
             return
 
-        # fig = interaction_plot(dataframe.dose, dataframe.supp, dataframe.len, colors=['red', 'blue'], markers=['D', '^'], ms=10)
-        # plt.show()
-
         # I will use "dependent" for the dependent variable, "grp2" for the group that has at least 2 variables
         # and "grp3plus" for the group that has at least 3 variables
 
         # print(dataframe.ix[:, 0])  # First column
         # print(dataframe.ix[:, 1])  # Second column
         # print(dataframe.ix[:, 2])  # Third column
-        unsorted_dict = {0: len(dataframe.ix[:, 0].unique()), 1: len(dataframe.ix[:, 1].unique()), 2: len(dataframe.ix[:, 2].unique())}
-        sorted_dict_list = sorted(unsorted_dict.items(), key=operator.itemgetter(1))
-        # print(sorted_dict_list)  # e.g [(1, 2), (2, 3), (0, 43)]
+        column_names = list(dataframe)  # unsorted
+        unsorted_dict = {0: [len(dataframe.ix[:, 0].unique()), column_names[0]], 1: [len(dataframe.ix[:, 1].unique()), column_names[1]], 2: [len(dataframe.ix[:, 2].unique()), column_names[2]]}
+        sorted_dict_list = sorted(unsorted_dict.items(), key=operator.itemgetter(1, 0))
+        print(sorted_dict_list)  # e.g [(1, [2, 'sup']), (2, [3, 'dose']), (0, [43, 'len'])]
         dependent = dataframe.ix[:, sorted_dict_list[2][0]]  # The dependent variable (with the most unique values)
         twoplus = dataframe.ix[:, sorted_dict_list[0][0]]  # The variable with the 2 or more unique values
         threeplus = dataframe.ix[:, sorted_dict_list[1][0]]  # The variable with the 3 or more unique values, subject to Bonferroni's adjustment
 
-        column_names = list(dataframe)  # unsorted
-        # formula = 'len ~ C(%s) + C(dose) + C(supp):C(dose)' % (column_names[0])
-        formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
+        # statmodels uses R-like model notation.
+        # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
+        # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
+        formula = 'len ~ C(%s) + C(%s)' % (sorted_dict_list[0][1][1], sorted_dict_list[1][1][1])
         print(formula)
         model = ols(formula, dataframe).fit()
         aov_table1 = anova_lm(model, typ=2)
-
         print(aov_table1)
+
+        # fig1 = interaction_plot(threeplus, twoplus, dependent, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+        # res = model.resid
+        # fig2 = sm.qqplot(res, line='s')
+        #
+        # plt.show()
 
 
 class SimpleTable(tk.Canvas):
