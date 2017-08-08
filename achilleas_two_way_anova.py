@@ -42,7 +42,8 @@ class App(tk.Tk):
     def onSave(self, m_widget):
         dataframe = self.create_pandas_DataFrame(m_widget)
         print(dataframe.dtypes)
-        dataframe.to_csv("test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
+        dataframe.index += 1
+        dataframe.to_csv("data/test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
 
     def convert_to_int_or_float(self, lst):
         if lst == []:
@@ -82,7 +83,6 @@ class App(tk.Tk):
         column3 = self.convert_to_int_or_float(column3)
         dataSet = list(zip(column1, column2, column3))
         dataframe = pd.DataFrame(data=dataSet, columns=[column1_name, column2_name, column3_name])
-        dataframe.index += 1
         return dataframe
 
     def onLoad(self, m_widget, m_rows):
@@ -91,7 +91,7 @@ class App(tk.Tk):
         # https://docs.python.org/2/library/functions.html#open
         # data = pd.read_csv('ToothGrowth.csv')
         # print(data)
-        with open('test_output.csv', 'r') as csvfile:
+        with open('data/test_output.csv', 'r') as csvfile:
             datareader = csv.reader(csvfile, delimiter=',', quotechar='\"')
             i = 0
             for row in datareader:
@@ -180,11 +180,16 @@ class App(tk.Tk):
         aov_table1 = anova_lm(model, typ=2)
         print(aov_table1)
 
+        # Plots:
+        plt.close('all')
         # fig1 = interaction_plot(threeplus, twoplus, dependent, colors=['red', 'blue'], markers=['D', '^'], ms=10)
-        # res = model.resid
-        # fig2 = sm.qqplot(res, line='s')
-        #
-        # plt.show()
+        # fig2 = sm.qqplot(model.resid, line='s')
+
+        fig, axx = plt.subplots(nrows=2)  # create two subplots, one in each row
+        interaction_plot(threeplus, twoplus, dependent, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
+        sm.qqplot(model.resid, line='s', ax=axx[1])
+
+        plt.show()
 
 
 class SimpleTable(tk.Canvas):

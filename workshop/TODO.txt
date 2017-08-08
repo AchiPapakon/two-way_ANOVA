@@ -12,3 +12,7 @@ Features:
 * Double click in the labels changes the values.
 
 * Hovering the cursor over the labels changes the cursor to the pointer of the "Entry" widget.
+
+* x-axis should have for this data set only 3 values for "supp"
+
+* Create a separate section in the GUI for the Output.

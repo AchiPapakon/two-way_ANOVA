@@ -11,6 +11,7 @@ data = pd.read_csv(datafile)
 
 fig = interaction_plot(data.dose, data.supp, data.len,
                        colors=['red', 'blue'], markers=['D', '^'], ms=10)
+print(data.dose)
 
 N = len(data.len)
 df_a = len(data.supp.unique()) - 1

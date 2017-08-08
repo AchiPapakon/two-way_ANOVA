@@ -2,13 +2,18 @@ from __future__ import division
 
 import tkinter as tk
 import tkinter.messagebox
-import re
+# import re
 import pandas as pd
-import numpy as np
-from scipy.stats import ttest_ind
+# import numpy as np
+# from scipy.stats import ttest_ind
 import csv
 from statsmodels.graphics.factorplots import interaction_plot
 import matplotlib.pyplot as plt
+# from scipy import stats
+import operator
+from statsmodels.formula.api import ols
+from statsmodels.stats.anova import anova_lm
+import statsmodels.api as sm
 
 
 class App(tk.Tk):
@@ -36,7 +41,34 @@ class App(tk.Tk):
 
     def onSave(self, m_widget):
         dataframe = self.create_pandas_DataFrame(m_widget)
+        print(dataframe.dtypes)
+        dataframe.index += 1
         dataframe.to_csv("test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
+
+    def convert_to_int_or_float(self, lst):
+        if lst == []:
+            return lst
+        new_lst = lst
+        try:
+            i = 0
+            for value in new_lst:
+                new_lst[i] = int(value)  # If this line throws exception, then the following line(s) of the try
+                # block will not execute.
+                i += 1
+            print('Successfully converted \"%s\" to integer' % (str(lst[0])))
+        except ValueError:
+            new_lst = lst
+            print('Cannot convert \"%s\" to integer' % (str(lst[0])))
+            try:
+                i = 0
+                for value in new_lst:
+                    new_lst[i] = float(value)
+                    i += 1
+                print('Successfully converted \"%s\" to float' % (str(lst[0])))
+            except ValueError:
+                new_lst = lst
+                print('Cannot convert \"%s\" to float' % (str(lst[0])))
+        return new_lst
 
     def create_pandas_DataFrame(self, m_widget):
         data = self.extract_data(m_widget)
@@ -46,10 +78,11 @@ class App(tk.Tk):
         column1 = data[column1_name]
         column2 = data[column2_name]
         column3 = data[column3_name]
-        print(type(column1[0]))
+        column1 = self.convert_to_int_or_float(column1)
+        column2 = self.convert_to_int_or_float(column2)
+        column3 = self.convert_to_int_or_float(column3)
         dataSet = list(zip(column1, column2, column3))
         dataframe = pd.DataFrame(data=dataSet, columns=[column1_name, column2_name, column3_name])
-        dataframe.index += 1
         return dataframe
 
     def onLoad(self, m_widget, m_rows):
@@ -118,12 +151,49 @@ class App(tk.Tk):
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
         dataframe = self.create_pandas_DataFrame(m_widget)
-        print(dataframe)
+        # print(dataframe)
         # The table must have at least 3 rows:
         if len(dataframe) < 2:  # number of rows = len(dataframe)
             tkinter.messagebox.showinfo('Two-way ANOVA', 'You must have at least 2 values for each group.')
-        # I HAVE THE CONVERT SOME VALUES TO FLOAT64!!
-        fig = interaction_plot(dataframe.dose, dataframe.supp, dataframe.len, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+            return
+
+        # I will use "dependent" for the dependent variable, "grp2" for the group that has at least 2 variables
+        # and "grp3plus" for the group that has at least 3 variables
+
+        # print(dataframe.ix[:, 0])  # First column
+        # print(dataframe.ix[:, 1])  # Second column
+        # print(dataframe.ix[:, 2])  # Third column
+        column_names = list(dataframe)  # unsorted
+        unsorted_dict = {0: [len(dataframe.ix[:, 0].unique()), column_names[0]], 1: [len(dataframe.ix[:, 1].unique()), column_names[1]], 2: [len(dataframe.ix[:, 2].unique()), column_names[2]]}
+        sorted_dict_list = sorted(unsorted_dict.items(), key=operator.itemgetter(1, 0))
+        print(sorted_dict_list)  # e.g [(1, [2, 'sup']), (2, [3, 'dose']), (0, [43, 'len'])]
+        dependent = dataframe.ix[:, sorted_dict_list[2][0]]  # The dependent variable (with the most unique values)
+        twoplus = dataframe.ix[:, sorted_dict_list[0][0]]  # The variable with the 2 or more unique values
+        threeplus = dataframe.ix[:, sorted_dict_list[1][0]]  # The variable with the 3 or more unique values, subject to Bonferroni's adjustment
+
+        # statmodels uses R-like model notation.
+        # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
+        # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
+        formula = 'len ~ C(%s) + C(%s)' % (sorted_dict_list[0][1][1], sorted_dict_list[1][1][1])
+        print(formula)
+        model = ols(formula, dataframe).fit()
+        aov_table1 = anova_lm(model, typ=2)
+        print(aov_table1)
+
+        # Plots:
+        plt.close('all')
+        fig1 = interaction_plot(threeplus, twoplus, dependent, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+        fig2 = sm.qqplot(model.resid, line='s')
+
+        fig = plt.figure()
+
+        ax1 = fig.add_subplot(221)
+        ax1.plot(fig1, 'r-')
+
+        ax2 = fig.add_subplot(222)
+        ax2.plot(fig2, 'k-')
+
+        plt.tight_layout()
         plt.show()
 
 
