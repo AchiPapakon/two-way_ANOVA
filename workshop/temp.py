@@ -1,33 +1,36 @@
-import numpy as np
-import matplotlib.pyplot as plt
+import tkinter as tk
 
-def make_img_from_data(data, offset_xy, fig_number=1):
-    fig.add_axes([0+offset_xy[0], 0+offset_xy[1], 0.5, 0.5])
-    plt.imshow(data)
 
-# creation of a dictionary with of 4 2D numpy array
-# and corresponding offsets (x, y)
+class Demo1:
+    def __init__(self, master):
+        self.master = master
+        self.frame = tk.Frame(self.master)
+        self.button1 = tk.Button(self.frame, text='New Window', width=25, command=self.new_window)
+        self.button1.pack()
+        self.frame.pack()
 
-# offsets for the 4 2D numpy arrays
-offset_a_x = 0
-offset_a_y = 0
-offset_b_x = 0.5
-offset_b_y = 0
-offset_c_x = 0
-offset_c_y = 0.5
-offset_d_x = 0.5
-offset_d_y = 0.5
+    def new_window(self):
+        self.newWindow = tk.Toplevel(self.master)
+        self.app = Demo2(self.newWindow)
 
-data_list = ['a', 'b', 'c', 'd']
-offsets_list = [[offset_a_x, offset_a_y], [offset_b_x, offset_b_y],
-                [offset_c_x, offset_c_y], [offset_d_x, offset_d_y]]
 
-# dictionary of the data and offsets
-data_dict = {f: [np.random.rand(12, 12), values] for f,values in zip(data_list, offsets_list)}
+class Demo2:
+    def __init__(self, master):
+        self.master = master
+        self.frame = tk.Frame(self.master)
+        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_windows)
+        self.quitButton.pack()
+        self.frame.pack()
 
-fig = plt.figure(1, figsize=(6,6))
+    def close_windows(self):
+        self.master.destroy()
 
-for n in data_dict:
-    make_img_from_data(data_dict[n][0], data_dict[n][1])
 
-plt.show()
+def main():
+    root = tk.Tk()
+    app = Demo1(root)
+    root.mainloop()
+
+
+if __name__ == '__main__':
+    main()

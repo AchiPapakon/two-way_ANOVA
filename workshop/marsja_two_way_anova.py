@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from scipy import stats
 
-datafile = "test_output.csv"
+datafile = "../data/test_output.csv"
 data = pd.read_csv(datafile)
 
 fig = interaction_plot(data.dose, data.supp, data.len,
