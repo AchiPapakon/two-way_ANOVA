@@ -191,6 +191,20 @@ class App(tk.Tk):
         print('Splitted groups are', groups)
         return groups
 
+    def mean_squares(self, data, column_name1, column_name2):
+        # ~~~ column_name1 the depending variable
+        # ~~~ column_name2 the categorical variable
+        # ~~~ Sum of squares within ~~~
+        n = data.groupby(column_name2).size()[0]
+        sum_y_squared = sum([value ** 2 for value in data[column_name1].values])
+        SSwithin = sum_y_squared - sum(data.groupby(column_name2).sum()[column_name2] ** 2) / n
+
+        # ~~~ Mean square within
+        N = len(data.values)
+        k = len(pd.unique(data[column_name2]))
+        DFwithin = N - k
+        MSwithin = SSwithin / DFwithin
+
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
         dataframe = self.create_pandas_DataFrame(m_widget)
@@ -233,7 +247,8 @@ class App(tk.Tk):
         print(aov_table1)
 
         # ~~~ Multiple comparisons ~~~
-        self.split_group(c1, c3)
+        groups = self.split_group(c1, c3)
+        self.mean_squares(dataframe, column_names[0], column_names[2])
 
         # ~~~ Bonferroni's correction ~~~
         reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(aov_table1.ix[:, 3], method='b')
