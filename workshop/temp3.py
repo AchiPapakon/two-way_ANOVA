@@ -27,6 +27,8 @@ def mean(m_lst):
         sum += x
     return sum/len(m_lst)
 
+glb_split_groups_total_size = 0
+
 def ms_within(m_groups):
     _size = 0
     # ~~~ SSwithin = Sigma(Y^2) - (1/n)*Sigma(Sigma(ai)^2) ~~~
@@ -40,26 +42,33 @@ def ms_within(m_groups):
             _size += 1
         n = len(x)
         partial_sum += low_sum ** 2 / n
+        global glb_split_groups_total_size
+        glb_split_groups_total_size = _size
     SSwithin = sum_y_squared - partial_sum
     DFwithin = _size - len(m_groups)
     MSwithin = SSwithin / DFwithin
     return MSwithin
 
 def t_multiple_comparisons(m_groups):
-    # ~~~ Calculate the F value (t) for each pair
-    # ~~~ test between 1st and 1nd group ~~~
+    # ~~~ Calculate the modified t value for each pair
+    # ~~~ test between 1st and 2nd group ~~~
     numenator = mean(m_groups[0]) - mean(m_groups[1])
     denumenator = sqrt(ms_within(m_groups)) * sqrt(1/len(m_groups[0]) + 1/len(m_groups[1]))
-    F = numenator / denumenator
-    # k = len(pd.unique(data.group))  # number of conditions
-    # N = len(data.values)  # conditions times participants
-    # n = data.groupby('group').size()[0]  # Participants in each condition
-    #
+    t = numenator / denumenator
+    k = len(m_groups)  # number of conditions
+    N = glb_split_groups_total_size  # conditions times participants
+
     # DFbetween = k - 1
-    # DFwithin = N - k
+    DFwithin = N - k
     # DFtotal = N - 1
-    # p = stats.f.sf(F, DFbetween, DFwithin)
-    return F
+
+    # https://docs.scipy.org/doc/scipy/reference/tutorial/stats.html#t-test-and-ks-test
+    p = stats.t.sf(abs(t), DFwithin) * 2  # two-sided pvalue
+    # return t
+    return p
+    # ~~~ test between 2st and 3nd group ~~~
+    # ~~~ test between 1st and 3nd group ~~~
+
 
 groups = split_group([4.1, 5.4, 5.9, 3.8, 6.8, 9.3, 7.2, 2.3], [0.5, 0.5, 0.5, 1, 2, 1, 2, 2])
 
