@@ -16,7 +16,6 @@ class App(tk.Tk):
 
 
     def btnTwoWayAnova_Click(self):
-        placeholder = 1
         self.newWindow = tk.Toplevel(self.master)
         self.app = Demo2(self.newWindow)
 
