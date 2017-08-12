@@ -3,28 +3,29 @@ from math import sqrt
 from scipy import stats
 
 glb_split_groups_total_size = 0
+glb_categories = []  # List of unique categorical values
 
 # ~~~ the auto pilot method ~~~
 def multiple_comparisons_with_bonferroni(list1, list2):
     groups = split_group(list1, list2)
-    p_values = t_multiple_comparisons(groups)
-    return bonferroni(p_values)
+    p_values, corresponding_groups = t_multiple_comparisons(groups)
+    return bonferroni(p_values), corresponding_groups
 
 def split_group(m_c1, m_c2):
     # ~~~ m_c1 the depending variable
     # ~~~ m_c2 the categorical variable
-    categories = []  # List of unique categorical values
+    global glb_categories  # List of unique categorical values
     for y in m_c2:
-        if not y in categories:
-            categories.append(y)
+        if not y in glb_categories:
+            glb_categories.append(y)
 
     # ~~~ groups for the dependent variable (eg 3) ~~~
     from itertools import repeat
-    groups = [[] for i in repeat(None, len(categories))]
+    groups = [[] for i in repeat(None, len(glb_categories))]
 
     for x,y in zip(m_c1, m_c2):
-        for i in range(0, len(categories)):
-            if y == categories[i]:
+        for i in range(0, len(glb_categories)):
+            if y == glb_categories[i]:
                 groups[i].append(x)
     # print(groups)
     return groups
@@ -58,21 +59,25 @@ def ms_within(m_groups):
 
 def t_multiple_comparisons(m_groups):
     p = []
+    corresponding_groups = []
+    global glb_categories
     # ~~~ Calculate the modified t value for each pair
     s_res = sqrt(ms_within(m_groups))
     k = len(m_groups)  # number of conditions
     N = glb_split_groups_total_size  # conditions times participants
     DFwithin = N - k
 
-    # ~~~ Test between groups ~~~
+    # ~~~ Test between groups: 0-1, 0-2, 1-2 ~~~
     for i in range(k-1):
         for j in range(i+1, k):
+            # print(i, j)
             numenator = mean(m_groups[i]) - mean(m_groups[j])
             denumenator = s_res * sqrt(1/len(m_groups[i]) + 1/len(m_groups[j]))
             t = numenator / denumenator
             # https://docs.scipy.org/doc/scipy/reference/tutorial/stats.html#t-test-and-ks-test
             p.append(stats.t.sf(abs(t), DFwithin) * 2)  # two-sided pvalue
-    return p
+            corresponding_groups.append([glb_categories[i], glb_categories[j]])
+    return p, corresponding_groups
 
 def bonferroni(p_values):
     # ~~~ Bonferroni: Each p value is multiplied by the total number of comparisons made ~~~
@@ -87,7 +92,7 @@ def bonferroni(p_values):
     return p_corrected
 
 
-# groups = split_group([4.1, 5.4, 5.9, 3.8, 6.8, 9.3, 7.2, 2.3], [0.5, 0.5, 0.5, 1, 2, 1, 2, 2])
+multiple_comparisons_with_bonferroni([4.1, 5.4, 5.9, 3.8, 6.8, 9.3, 7.2, 2.3], [0.5, 0.5, 0.5, 1, 2, 1, 2, 2])
 
 # print(ms_within([[243, 251, 275, 291, 347, 354, 380, 392],
 #                  [206, 210, 226, 249, 255, 273, 285, 295, 309],
@@ -97,6 +102,6 @@ def bonferroni(p_values):
 #                  [4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69],
 #                  [6.31, 5.12, 5.54, 5.5, 5.37, 5.29, 4.92, 6.15, 5.8, 5.26]]))
 
-print(t_multiple_comparisons([[243, 251, 275, 291, 347, 354, 380, 392],
-                              [206, 210, 226, 249, 255, 273, 285, 295, 309],
-                              [241, 258, 270, 293, 328]]))
+# print(t_multiple_comparisons([[243, 251, 275, 291, 347, 354, 380, 392],
+#                               [206, 210, 226, 249, 255, 273, 285, 295, 309],
+#                               [241, 258, 270, 293, 328]]))

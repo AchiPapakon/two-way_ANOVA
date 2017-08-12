@@ -172,6 +172,21 @@ class App(tk.Tk):
         print(table)
         return table
 
+    def create_bonferroni_dataframe(self, m_p_values, m_corresponding_groups):
+        pretty_cor_grps = []  # just changing the output string
+        for x in m_corresponding_groups:
+            str_ = '%s and %s' % (str(x[0]), str(x[1]))
+            pretty_cor_grps.append(str_)
+        pretty_p_v_cor = []  # just changing the output string
+        for x in m_p_values:
+            rounded = round(x, 3)
+            if rounded < 0.001:
+                pretty_p_v_cor.append('< 0.001')
+            else:
+                pretty_p_v_cor.append(str(rounded))
+        dataset_bon = list(zip(pretty_cor_grps, pretty_p_v_cor))
+        return pd.DataFrame(data=dataset_bon, columns=['Groups', 'p value'])
+
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
         dataframe = self.create_pandas_DataFrame(m_widget)
@@ -201,8 +216,6 @@ class App(tk.Tk):
         c2 = dataframe[column_names[1]]
         c3 = dataframe[column_names[2]]
 
-        print(c3[20])
-
         # statmodels uses R-like model notation.
         # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
         # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
@@ -211,12 +224,14 @@ class App(tk.Tk):
         print(formula)
         model = ols(formula, dataframe).fit()
         aov_table1 = anova_lm(model, typ=2)
+        print('\n~~~ Two-way ANOVA without interactions ~~~')
         print(aov_table1)
 
         # ~~~ Bonferroni's correction ~~~
-        # reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(aov_table1.ix[:, 3], method='b')
-        p_v_cor = multiple_comparisons_with_bonferroni(c1, c3)
-        print(p_v_cor)
+        p_v_cor, corresponding_groups = multiple_comparisons_with_bonferroni(c1, c3)
+        dataframe_bon = self.create_bonferroni_dataframe(p_v_cor, corresponding_groups)
+        print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
+        print(dataframe_bon)
 
         # Plots:
         plt.close('all')
