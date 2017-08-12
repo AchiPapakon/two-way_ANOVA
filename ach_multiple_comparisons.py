@@ -6,6 +6,7 @@ glb_split_groups_total_size = 0
 
 # ~~~ the auto pilot method ~~~
 def multiple_comparisons_with_bonferroni(list1, list2):
+    # ~~~ input: list1 is the dependent variable and list2 is the categorical variable ~~~
     groups = split_group(list1, list2)
     p_values = t_multiple_comparisons(groups)
     return bonferroni(p_values)
@@ -85,18 +86,3 @@ def bonferroni(p_values):
         else:
             p_corrected.append(x * k)
     return p_corrected
-
-
-# groups = split_group([4.1, 5.4, 5.9, 3.8, 6.8, 9.3, 7.2, 2.3], [0.5, 0.5, 0.5, 1, 2, 1, 2, 2])
-
-# print(ms_within([[243, 251, 275, 291, 347, 354, 380, 392],
-#                  [206, 210, 226, 249, 255, 273, 285, 295, 309],
-#                 [241, 258, 270, 293, 328]]))
-#
-# print(ms_within([[4.17, 5.58, 5.18, 6.11, 4.5, 4.61, 5.17, 4.53, 5.33, 5.14],
-#                  [4.81, 4.17, 4.41, 3.59, 5.87, 3.83, 6.03, 4.89, 4.32, 4.69],
-#                  [6.31, 5.12, 5.54, 5.5, 5.37, 5.29, 4.92, 6.15, 5.8, 5.26]]))
-
-print(t_multiple_comparisons([[243, 251, 275, 291, 347, 354, 380, 392],
-                              [206, 210, 226, 249, 255, 273, 285, 295, 309],
-                              [241, 258, 270, 293, 328]]))

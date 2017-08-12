@@ -1,5 +1,6 @@
 from __future__ import division   # proper division 5/2 = 2.5
 
+from ach_multiple_comparisons import multiple_comparisons_with_bonferroni
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
@@ -171,40 +172,6 @@ class App(tk.Tk):
         print(table)
         return table
 
-    #~~~ splitting a group which has 3 categories ~~~
-    def split_group(self, m_c1, m_c2):
-        # ~~~ m_c1 the depending variable
-        # ~~~ m_c2 the categorical variable
-        categories = []  # List of unique categorical values
-        for y in m_c2:
-            if not y in categories:
-                categories.append(y)
-
-        # ~~~ groups for the dependent variable (eg 3) ~~~
-        from itertools import repeat
-        groups = [[] for i in repeat(None, len(categories))]
-
-        for x, y in zip(m_c1, m_c2):
-            for i in range(0, len(categories)):
-                if y == categories[i]:
-                    groups[i].append(x)
-        print('Splitted groups are', groups)
-        return groups
-
-    def mean_squares(self, data, column_name1, column_name2):
-        # ~~~ column_name1 the depending variable
-        # ~~~ column_name2 the categorical variable
-        # ~~~ Sum of squares within ~~~
-        n = data.groupby(column_name2).size()[0]
-        sum_y_squared = sum([value ** 2 for value in data[column_name1].values])
-        SSwithin = sum_y_squared - sum(data.groupby(column_name2).sum()[column_name2] ** 2) / n
-
-        # ~~~ Mean square within
-        N = len(data.values)
-        k = len(pd.unique(data[column_name2]))
-        DFwithin = N - k
-        MSwithin = SSwithin / DFwithin
-
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
         dataframe = self.create_pandas_DataFrame(m_widget)
@@ -246,12 +213,10 @@ class App(tk.Tk):
         aov_table1 = anova_lm(model, typ=2)
         print(aov_table1)
 
-        # ~~~ Multiple comparisons ~~~
-        groups = self.split_group(c1, c3)
-        self.mean_squares(dataframe, column_names[0], column_names[2])
-
         # ~~~ Bonferroni's correction ~~~
-        reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(aov_table1.ix[:, 3], method='b')
+        # reject, pvals_corrected, alphacSidak, alphacBonf = multipletests(aov_table1.ix[:, 3], method='b')
+        p_v_cor = multiple_comparisons_with_bonferroni(c1, c3)
+        print(p_v_cor)
 
         # Plots:
         plt.close('all')
