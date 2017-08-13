@@ -1,8 +1,8 @@
 from tkinter import *
 import os
 
-
 class Dialog(Toplevel):
+
     def __init__(self, parent, title = None):
 
         Toplevel.__init__(self, parent)
@@ -93,7 +93,6 @@ class Dialog(Toplevel):
 
         pass # override
 
-
 root = Tk()
 d = Dialog(root)
-root.wait_window(d)
+root.mainloop()

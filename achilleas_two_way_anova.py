@@ -1,6 +1,7 @@
 from __future__ import division   # proper division 5/2 = 2.5
 
 from ach_multiple_comparisons import multiple_comparisons_with_bonferroni
+import ach_generic
 import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
@@ -13,22 +14,12 @@ import csv
 from statsmodels.graphics.factorplots import interaction_plot
 import matplotlib.pyplot as plt
 # from scipy import stats
-import operator
+# import operator
 from statsmodels.formula.api import ols
 from statsmodels.stats.anova import anova_lm
 import statsmodels.api as sm
-from statsmodels.sandbox.stats.multicomp import multipletests
+# from statsmodels.sandbox.stats.multicomp import multipletests
 
-class Demo2:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_windows)
-        self.quitButton.pack()
-        self.frame.pack()
-
-    def close_windows(self):
-        self.master.destroy()
 
 class App(tk.Tk):
     def __init__(self):
@@ -112,6 +103,10 @@ class App(tk.Tk):
         # If the filepath is empty, then do nothing
         if fpath == '':
             return
+
+        # + save settings between first and second Load!
+        wiz = ach_generic.Wizard(self)
+        print([x.get() for x in wiz.radio_buttons])
 
         try:
             # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on
