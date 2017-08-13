@@ -1,36 +1,32 @@
-import tkinter as tk
+from tkinter import *
 
+class MyDialog:
 
-class Demo1:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.button1 = tk.Button(self.frame, text='New Window', width=25, command=self.new_window)
-        self.button1.pack()
-        self.frame.pack()
+    def __init__(self, parent):
 
-    def new_window(self):
-        self.newWindow = tk.Toplevel(self.master)
-        self.app = Demo2(self.newWindow)
+        top = self.top = Toplevel(parent)
 
+        Label(top, text="Value").pack()
 
-class Demo2:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_windows)
-        self.quitButton.pack()
-        self.frame.pack()
+        self.e = Entry(top)
+        self.e.pack(padx=5)
 
-    def close_windows(self):
-        self.master.destroy()
+        b = Button(top, text="OK", command=self.ok)
+        b.pack(pady=5)
 
+    def ok(self):
 
-def main():
-    root = tk.Tk()
-    app = Demo1(root)
-    root.mainloop()
+        print("value is", self.e.get())
 
+        self.top.destroy()
 
-if __name__ == '__main__':
-    main()
+def ach_new_window():
+    MyDialog(root)
+
+root = Tk()
+Button(root, text="Hello!", command=ach_new_window).pack()
+root.update()
+
+d = MyDialog(root)
+
+root.wait_window(d.top)

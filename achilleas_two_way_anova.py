@@ -19,6 +19,16 @@ from statsmodels.stats.anova import anova_lm
 import statsmodels.api as sm
 from statsmodels.sandbox.stats.multicomp import multipletests
 
+class Demo2:
+    def __init__(self, master):
+        self.master = master
+        self.frame = tk.Frame(self.master)
+        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_windows)
+        self.quitButton.pack()
+        self.frame.pack()
+
+    def close_windows(self):
+        self.master.destroy()
 
 class App(tk.Tk):
     def __init__(self):
@@ -91,10 +101,8 @@ class App(tk.Tk):
 
     # ~~~~~~~~~~~~~~~~~~~~~ openFileDialog ~~~~~~~~~~~~~~~~~~~~~~~~
     def openFile(self):
-        '''Called when startButton is clicked or via menu'''
+        ''' Called when startButton is clicked or via menu '''
         dir_path = os.path.dirname(os.path.realpath(__file__))
-        # FILEOPENOPTIONS = dict(defaultextension='.bin',
-        #                        filetypes=[('All files', '*.*'), ('Bin file', '*.bin')])
         return tkinter.filedialog.askopenfilename(title='Select a dataset file...', initialdir=dir_path,
                                                   filetypes=[('CSV files', '*.csv'), ('All files', '*.*')])
 
@@ -106,8 +114,8 @@ class App(tk.Tk):
             return
 
         try:
-            # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on systems
-            # that don’t treat binary and text files differently, where it serves as documentation.)
+            # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on
+            # systems that don’t treat binary and text files differently, where it serves as documentation.)
             # https://docs.python.org/2/library/functions.html#open data = pd.read_csv('ToothGrowth.csv') print(data)
             with open(fpath, 'r') as csvfile:
                 datareader = csv.reader(csvfile, delimiter=',', quotechar='\"')

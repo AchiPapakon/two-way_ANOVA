@@ -16,3 +16,4 @@ Features:
 * x-axis should have for this data set only 3 values for "supp"
 
 * Create a separate section in the GUI for the Output.
+	* Create a separete window in the GUI for the Output.
