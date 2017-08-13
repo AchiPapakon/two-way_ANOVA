@@ -25,6 +25,7 @@ class App(tk.Tk):
     def __init__(self):
         rows = 100
         columns = 3
+        self.settings_string_list = None
         tk.Tk.__init__(self)
         # draw Frame above the table which contains the button
         frame = tk.Frame(self)
@@ -104,29 +105,42 @@ class App(tk.Tk):
         if fpath == '':
             return
 
-        # + save settings between first and second Load!
-        wiz = ach_generic.Wizard(self)
-        print([x.get() for x in wiz.settings])
+        # ~~~ The Wizard saves settings between first and subsequent dialogs ~~~
+        wiz = ach_generic.Wizard(self, self.settings_string_list)
+        self.settings_string_list = [x.get() for x in wiz.settings]
+        wiz_settings = {'title': self.settings_string_list[0],
+                        'delimiter': self.settings_string_list[1],
+                        'qualifier': self.settings_string_list[2]}
+
 
         try:
             # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on
             # systems that don’t treat binary and text files differently, where it serves as documentation.)
             # https://docs.python.org/2/library/functions.html#open data = pd.read_csv('ToothGrowth.csv') print(data)
             with open(fpath, 'r') as csvfile:
-                datareader = csv.reader(csvfile, delimiter=',', quotechar='\"')
+                datareader = csv.reader(csvfile,
+                                        delimiter=wiz_settings['delimiter'], quotechar=wiz_settings['qualifier'])
                 i = 0
                 for row in datareader:
                     # print(', '.join(row))
                     # name the labels above the table:
                     if i == 0:
-                        for j in range(1, 4):
-                            m_widget._widgets[i][j].config(text=row[j])
+                        # ~~~ Fill in the labels (column names) ~~~
+                        if wiz_settings['title'] == 'Yes':
+                            for j in range(1, 4):
+                                m_widget._widgets[0][j].config(text=row[j])
+                        else:
+                            i += 1
+                            for j in range(1, 4):
+                                m_widget._widgets[0][j].config(text=j)
+                                m_widget._widgets[i][j].delete(0, 'end')
+                                m_widget._widgets[i][j].insert(0, row[j])
                     else:
                         # populate the table:
                         for j in range(1, 4):
                             m_widget._widgets[i][j].delete(0, 'end')
                             m_widget._widgets[i][j].insert(0, row[j])
-                    i = i + 1
+                    i += 1
                     print(row)
                 # Populate the rest of the table with zeros:
                 # # i count is already +1:
@@ -139,6 +153,7 @@ class App(tk.Tk):
                     #     break
                     i = i + 1
         except:
+            self.settings_string_list = None
             info = 'Invalid file!\n'
             info += 'The file must have three columns:\n'
             info += '* the first column is the dependent variable\n' \

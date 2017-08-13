@@ -118,22 +118,22 @@ class Wizard(Dialog):  # extends Dialog
         group2.pack(padx=10, pady=10, fill='x')
         delimiters = StringVar()
         self.settings.append(delimiters)
-        delimiters.set('Comma')
-        Radiobutton(group2, text='Tab', variable=delimiters, value='Tab').pack(anchor='w')
-        Radiobutton(group2, text='Space', variable=delimiters, value='Space').pack(anchor='w')
-        Radiobutton(group2, text='Comma', variable=delimiters, value='Comma').pack(anchor='w')
-        Radiobutton(group2, text='Semicolon', variable=delimiters, value='Semicolon').pack(anchor='w')
+        delimiters.set(',')
+        Radiobutton(group2, text='Tab', variable=delimiters, value='\t').pack(anchor='w')
+        Radiobutton(group2, text='Space', variable=delimiters, value=' ').pack(anchor='w')
+        Radiobutton(group2, text='Comma', variable=delimiters, value=',').pack(anchor='w')
+        Radiobutton(group2, text='Semicolon', variable=delimiters, value=';').pack(anchor='w')
 
         # ~~~ 3rd group ~~~
         group3 = LabelFrame(master, text='What is the text qualifier?', padx=5, pady=5)
         group3.pack(padx=10, pady=10, fill='x')
         qualifier = StringVar()
         self.settings.append(qualifier)
-        qualifier.set('Double quote')
+        qualifier.set('\"')
         # Radiobutton(group3, text='None', variable=qualifier, value='None').pack(anchor='w')
-        Radiobutton(group3, text='Single quote \t \' ', variable=qualifier, value='Single quote').pack(anchor='w')
-        Radiobutton(group3, text='Double quote \t \" ', variable=qualifier, value='Double quote').pack(anchor='w')
-        Radiobutton(group3, text='Vertical bar \t | ', variable=qualifier, value='Vertical bar').pack(anchor='w')
+        Radiobutton(group3, text='Single quote \t \' ', variable=qualifier, value='\'').pack(anchor='w')
+        Radiobutton(group3, text='Double quote \t \" ', variable=qualifier, value='\"').pack(anchor='w')
+        Radiobutton(group3, text='Vertical bar \t | ', variable=qualifier, value='|').pack(anchor='w')
 
         if self.in_settings == None:
             # ~~~ Use the default settings ~~~
@@ -145,10 +145,10 @@ class Wizard(Dialog):  # extends Dialog
             self.settings[1].set(self.in_settings[1])
             self.settings[2].set(self.in_settings[2])
 
-root = Tk()
-wiz = Wizard(root)
-string_list_temp = [x.get() for x in wiz.settings]
-print(string_list_temp)
-wiz = Wizard(root, settings=string_list_temp)
-print([x.get() for x in wiz.settings])
-root.mainloop()
+# root = Tk()
+# wiz = Wizard(root)
+# string_list_temp = [x.get() for x in wiz.settings]
+# print(string_list_temp)
+# wiz = Wizard(root, settings=string_list_temp)
+# print([x.get() for x in wiz.settings])
+# root.mainloop()
