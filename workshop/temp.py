@@ -1,23 +1,13 @@
-from tkinter import *
+class BaseClass(object):
+    def __init__(self, mark=None, name=None):   # you're using named parameters, declare them as named one.
+        self.mark = mark
+        self.name = name
 
-root = Tk()
 
-v = IntVar()
-v.set(1)  # initializing the choice, i.e. Python
+class DerivedClass(BaseClass):   # don't forget to declare inheritance
+    def __init__(self, *args, rank, **kwargs):    # in args, kwargs, there will be all parameters you don't care, but needed for baseClass
+        super(DerivedClass, self).__init__(*args, **kwargs)
+        self.rank = rank
 
-languages = [
-    ("Python",1),
-    ("Perl",2),
-    ("Java",3),
-    ("C++",4),
-    ("C",5)
-]
-
-def ShowChoice():
-    print(v.get())
-
-Label(root,
-      text="""Choose your favourite 
-programming language:""",
-      justify = LEFT,
-      padx = 20).pack()
+b1 = DerivedClass(rank='Jibin')
+print(b1.rank)

@@ -106,7 +106,7 @@ class App(tk.Tk):
 
         # + save settings between first and second Load!
         wiz = ach_generic.Wizard(self)
-        print([x.get() for x in wiz.radio_buttons])
+        print([x.get() for x in wiz.settings])
 
         try:
             # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on

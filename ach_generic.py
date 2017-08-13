@@ -12,9 +12,10 @@ def convert_to_3places(float_):
 
 
 class Dialog(Toplevel):
-    def __init__(self, parent, title = None):
+    def __init__(self, parent, settings=None, title = None):
         Toplevel.__init__(self, parent)
         self.transient(parent)
+        self.in_settings = settings  # ach: optional argument for settings input
 
         if title:
             self.title(title)
@@ -101,22 +102,22 @@ class Dialog(Toplevel):
 
 class Wizard(Dialog):  # extends Dialog
     def body(self, master):
-        self.radio_buttons = []
+        self.settings = []
 
         # ~~~ 1st group ~~~
         group1 = LabelFrame(master, text='Are variable names included at the top of your file?', padx=5, pady=5)
         group1.pack(padx=10, pady=10)
-        radio_title = BooleanVar()
-        self.radio_buttons.append(radio_title)
-        radio_title.set(True)  # initializing the choice ('True')
-        Radiobutton(group1, text='Yes', variable=radio_title, value=True).pack(anchor='w')
-        Radiobutton(group1, text='No', variable=radio_title, value=False).pack(anchor='w')
+        radio_title = StringVar()
+        self.settings.append(radio_title)
+        radio_title.set('Yes')  # initializing the choice ('True')
+        Radiobutton(group1, text='Yes', variable=radio_title, value='Yes').pack(anchor='w')
+        Radiobutton(group1, text='No', variable=radio_title, value='No').pack(anchor='w')
 
         # ~~~ 2nd group ~~~
         group2 = LabelFrame(master, text='Which delimiters appear between your variables?', padx=5, pady=5)
         group2.pack(padx=10, pady=10, fill='x')
         delimiters = StringVar()
-        self.radio_buttons.append(delimiters)
+        self.settings.append(delimiters)
         delimiters.set('Comma')
         Radiobutton(group2, text='Tab', variable=delimiters, value='Tab').pack(anchor='w')
         Radiobutton(group2, text='Space', variable=delimiters, value='Space').pack(anchor='w')
@@ -127,14 +128,27 @@ class Wizard(Dialog):  # extends Dialog
         group3 = LabelFrame(master, text='What is the text qualifier?', padx=5, pady=5)
         group3.pack(padx=10, pady=10, fill='x')
         qualifier = StringVar()
-        self.radio_buttons.append(qualifier)
+        self.settings.append(qualifier)
         qualifier.set('Double quote')
         # Radiobutton(group3, text='None', variable=qualifier, value='None').pack(anchor='w')
         Radiobutton(group3, text='Single quote \t \' ', variable=qualifier, value='Single quote').pack(anchor='w')
         Radiobutton(group3, text='Double quote \t \" ', variable=qualifier, value='Double quote').pack(anchor='w')
         Radiobutton(group3, text='Vertical bar \t | ', variable=qualifier, value='Vertical bar').pack(anchor='w')
 
-# root = Tk()
-# wiz = Wizard(root)
-# print([x.get() for x in wiz.radio_buttons])
-# root.mainloop()
+        if self.in_settings == None:
+            # ~~~ Use the default settings ~~~
+            pass
+        elif not isinstance(self.settings, list):
+            print('Debug: the input must be a list')
+        else:
+            self.settings[0].set(self.in_settings[0])
+            self.settings[1].set(self.in_settings[1])
+            self.settings[2].set(self.in_settings[2])
+
+root = Tk()
+wiz = Wizard(root)
+string_list_temp = [x.get() for x in wiz.settings]
+print(string_list_temp)
+wiz = Wizard(root, settings=string_list_temp)
+print([x.get() for x in wiz.settings])
+root.mainloop()
