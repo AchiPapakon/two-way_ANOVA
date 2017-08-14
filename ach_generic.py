@@ -1,6 +1,7 @@
 from decimal import *
 from tkinter import *
-import os
+import tkinter.ttk as ttk
+# import os
 
 
 def convert_to_3places(float_):
@@ -15,13 +16,13 @@ class Dialog(Toplevel):
     def __init__(self, parent, settings=None, title = None):
         Toplevel.__init__(self, parent)
         self.transient(parent)
-        self.in_settings = settings  # ach: optional argument for settings input
 
         if title:
             self.title(title)
 
         self.parent = parent
         self.result = None
+        self.in_settings = settings  # ach: optional argument for settings input
 
         body = Frame(self)
         self.initial_focus = self.body(body)
@@ -148,11 +149,52 @@ class LoadWizard(Dialog):  # extends Dialog
     def apply(self):
         self.result = [x.get() for x in self.settings]
 
-# root = Tk()
-# wiz = Wizard(root)
-# string_list_temp = [x.get() for x in wiz.settings]
-# print(string_list_temp)
-# wiz = Wizard(root, settings=string_list_temp)
-# print([x.get() for x in wiz.settings])
-# root.mainloop()
+# if __name__ == '__main__':
+#     root = Tk()
+#     wiz = LoadWizard(root)
+#     string_list_temp = [x.get() for x in wiz.settings]
+#     print(string_list_temp)
+#     wiz = LoadWizard(root, settings=string_list_temp)
+#     print([x.get() for x in wiz.settings])
+#     root.mainloop()
+
+
+class TwoWayAnovaWizard(Dialog):
+    def body(self, master):
+        label_1 = Label(master, text='Dependent variable: ')
+        label_1.grid(row=0, column=0, sticky='w', pady=(5, 0))
+        self.t = self.combo1(master)
+        label_2 = Label(master, text='Post hoc text for: ')
+        label_2.grid(row=1, column=0, sticky='w', pady=(10, 0))
+        self.combo2(master)
+
+    def combo1(self, master):
+        self.dependent_value = StringVar()
+        self.dependent_box = ttk.Combobox(master, textvariable=self.dependent_value, state='readonly')
+        assert isinstance(self.in_settings, tuple)
+        self.dependent_box['values'] = self.in_settings
+        self.dependent_box.current(0)
+        self.dependent_box.grid(row=0, column=1, pady=(5, 0))
+        self.dependent_box.bind("<<ComboboxSelected>>", self.newselection)
+
+    def newselection(self, event):
+        tupleX = tuple([x for x in self.in_settings if not x == self.dependent_value.get()])
+        self.posthoc_box['values'] = tupleX
+        # ~~~ update combo2 ~~~
+        self.posthoc_box.current(0)
+
+    def combo2(self, master):
+        self.posthoc_value = StringVar()
+        self.posthoc_box = ttk.Combobox(master, textvariable=self.posthoc_value, state='readonly')
+        assert isinstance(self.in_settings, tuple)
+        tupleX = tuple([x for x in self.in_settings if not x == self.dependent_value.get()])
+        self.posthoc_box['values'] = tupleX
+        self.posthoc_box.current(1)
+        self.posthoc_box.grid(row=1, column=1, pady=(10, 0))
+
+if __name__ == '__main__':
+    root = Tk()
+    diag = TwoWayAnovaWizard(root, settings=('X', 'Y', 'Z'))
+    root.mainloop()
+
 
