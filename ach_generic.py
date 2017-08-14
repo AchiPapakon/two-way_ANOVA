@@ -149,15 +149,6 @@ class LoadWizard(Dialog):  # extends Dialog
     def apply(self):
         self.result = [x.get() for x in self.settings]
 
-# if __name__ == '__main__':
-#     root = Tk()
-#     wiz = LoadWizard(root)
-#     string_list_temp = [x.get() for x in wiz.settings]
-#     print(string_list_temp)
-#     wiz = LoadWizard(root, settings=string_list_temp)
-#     print([x.get() for x in wiz.settings])
-#     root.mainloop()
-
 
 class TwoWayAnovaWizard(Dialog):
     def body(self, master):
@@ -199,8 +190,6 @@ class TwoWayAnovaWizard(Dialog):
 
 if __name__ == '__main__':
     root = Tk()
-    diag = TwoWayAnovaWizard(root, settings=('X', 'Y', 'Z'))
-    print(diag.result)
     root.mainloop()
 
 
