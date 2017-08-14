@@ -178,23 +178,29 @@ class TwoWayAnovaWizard(Dialog):
         self.dependent_box.bind("<<ComboboxSelected>>", self.newselection)
 
     def newselection(self, event):
-        tupleX = tuple([x for x in self.in_settings if not x == self.dependent_value.get()])
-        self.posthoc_box['values'] = tupleX
         # ~~~ update combo2 ~~~
+        self.update_combo2()
+
+    def update_combo2(self):
+        # ~~~ update combo2 ~~~
+        tupleX = tuple([''] + [x for x in self.in_settings if not x == self.dependent_value.get()])
+        self.posthoc_box['values'] = tupleX
         self.posthoc_box.current(0)
 
     def combo2(self, master):
         self.posthoc_value = StringVar()
         self.posthoc_box = ttk.Combobox(master, textvariable=self.posthoc_value, state='readonly')
         assert isinstance(self.in_settings, tuple)
-        tupleX = tuple([x for x in self.in_settings if not x == self.dependent_value.get()])
-        self.posthoc_box['values'] = tupleX
-        self.posthoc_box.current(1)
+        self.update_combo2()
         self.posthoc_box.grid(row=1, column=1, pady=(10, 0))
+
+    def apply(self):
+        self.result = [self.dependent_value.get(), self.posthoc_value.get()]
 
 if __name__ == '__main__':
     root = Tk()
     diag = TwoWayAnovaWizard(root, settings=('X', 'Y', 'Z'))
+    print(diag.result)
     root.mainloop()
 
 
