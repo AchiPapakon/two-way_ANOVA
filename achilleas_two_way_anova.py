@@ -106,8 +106,11 @@ class App(tk.Tk):
             return
 
         # ~~~ The Wizard saves settings between first and subsequent dialogs ~~~
-        wiz = ach_generic.Wizard(self, self.settings_string_list)
-        self.settings_string_list = [x.get() for x in wiz.settings]
+        wiz = ach_generic.LoadWizard(self, self.settings_string_list)
+        self.settings_string_list = wiz.result
+        if self.settings_string_list == None:
+            return
+
         wiz_settings = {'title': self.settings_string_list[0],
                         'delimiter': self.settings_string_list[1],
                         'qualifier': self.settings_string_list[2]}

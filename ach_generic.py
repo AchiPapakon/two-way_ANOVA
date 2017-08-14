@@ -100,7 +100,7 @@ class Dialog(Toplevel):
         pass # override
 
 
-class Wizard(Dialog):  # extends Dialog
+class LoadWizard(Dialog):  # extends Dialog
     def body(self, master):
         self.settings = []
 
@@ -145,6 +145,9 @@ class Wizard(Dialog):  # extends Dialog
             self.settings[1].set(self.in_settings[1])
             self.settings[2].set(self.in_settings[2])
 
+    def apply(self):
+        self.result = [x.get() for x in self.settings]
+
 # root = Tk()
 # wiz = Wizard(root)
 # string_list_temp = [x.get() for x in wiz.settings]
@@ -152,3 +155,4 @@ class Wizard(Dialog):  # extends Dialog
 # wiz = Wizard(root, settings=string_list_temp)
 # print([x.get() for x in wiz.settings])
 # root.mainloop()
+
