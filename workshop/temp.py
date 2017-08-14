@@ -1,36 +1,13 @@
-import tkinter as tk
+class BaseClass(object):
+    def __init__(self, mark=None, name=None):   # you're using named parameters, declare them as named one.
+        self.mark = mark
+        self.name = name
 
 
-class Demo1:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.button1 = tk.Button(self.frame, text='New Window', width=25, command=self.new_window)
-        self.button1.pack()
-        self.frame.pack()
+class DerivedClass(BaseClass):   # don't forget to declare inheritance
+    def __init__(self, *args, rank, **kwargs):    # in args, kwargs, there will be all parameters you don't care, but needed for baseClass
+        super(DerivedClass, self).__init__(*args, **kwargs)
+        self.rank = rank
 
-    def new_window(self):
-        self.newWindow = tk.Toplevel(self.master)
-        self.app = Demo2(self.newWindow)
-
-
-class Demo2:
-    def __init__(self, master):
-        self.master = master
-        self.frame = tk.Frame(self.master)
-        self.quitButton = tk.Button(self.frame, text='Quit', width=25, command=self.close_windows)
-        self.quitButton.pack()
-        self.frame.pack()
-
-    def close_windows(self):
-        self.master.destroy()
-
-
-def main():
-    root = tk.Tk()
-    app = Demo1(root)
-    root.mainloop()
-
-
-if __name__ == '__main__':
-    main()
+b1 = DerivedClass(rank='Jibin')
+print(b1.rank)
