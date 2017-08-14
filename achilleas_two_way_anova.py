@@ -6,7 +6,7 @@ import tkinter as tk
 import tkinter.messagebox
 import tkinter.filedialog
 import os
-# import re
+import re
 import pandas as pd
 # import numpy as np
 # from scipy.stats import ttest_ind
@@ -47,6 +47,8 @@ class App(tk.Tk):
 
     def onSave(self, m_widget):
         dataframe = self.create_pandas_DataFrame(m_widget)
+        if dataframe.empty:
+            return
         print(dataframe.dtypes)
         dataframe.index += 1
         dataframe.to_csv("data/test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
@@ -78,18 +80,21 @@ class App(tk.Tk):
 
     def create_pandas_DataFrame(self, m_widget):
         data = self.extract_data(m_widget)
-        column1_name = m_widget._widgets[0][1]['text']
-        column2_name = m_widget._widgets[0][2]['text']
-        column3_name = m_widget._widgets[0][3]['text']
-        column1 = data[column1_name]
-        column2 = data[column2_name]
-        column3 = data[column3_name]
-        column1 = self.convert_to_int_or_float(column1)
-        column2 = self.convert_to_int_or_float(column2)
-        column3 = self.convert_to_int_or_float(column3)
-        dataSet = list(zip(column1, column2, column3))
-        dataframe = pd.DataFrame(data=dataSet, columns=[column1_name, column2_name, column3_name])
-        return dataframe
+        if data == -1:
+            return pd.DataFrame()
+        else:
+            column1_name = m_widget._widgets[0][1]['text']
+            column2_name = m_widget._widgets[0][2]['text']
+            column3_name = m_widget._widgets[0][3]['text']
+            column1 = data[column1_name]
+            column2 = data[column2_name]
+            column3 = data[column3_name]
+            column1 = self.convert_to_int_or_float(column1)
+            column2 = self.convert_to_int_or_float(column2)
+            column3 = self.convert_to_int_or_float(column3)
+            dataSet = list(zip(column1, column2, column3))
+            dataframe = pd.DataFrame(data=dataSet, columns=[column1_name, column2_name, column3_name])
+            return dataframe
 
     # ~~~~~~~~~~~~~~~~~~~~~ openFileDialog ~~~~~~~~~~~~~~~~~~~~~~~~
     def openFile(self):
@@ -114,7 +119,6 @@ class App(tk.Tk):
         wiz_settings = {'title': self.settings_string_list[0],
                         'delimiter': self.settings_string_list[1],
                         'qualifier': self.settings_string_list[2]}
-
 
         try:
             # In Linux, maybe I need to open as 'rb', where b stands for binary. (Appending 'b' is useful even on
@@ -165,12 +169,23 @@ class App(tk.Tk):
             tkinter.messagebox.showerror('Statistics', info)
 
     def invalid_row(self, strList):
+        # ~~~ check if the items in strList validate ~~~
+        for x in strList:
+            m = re.search('^(\d+)?\.{2,}(\d+)?$', x)
+            if not m:
+                pass
+            else:
+                return -2
+
+        # ~~~ ''.join(strList) concatenates all the list values ~~~
         if ''.join(strList) == '':
+            # ~~~ if all the list values are empty ~~~
             return -1
         elif '' in strList:
-            return True
+            # ~~~ if the list contains an empty string ~~~
+            return 1
         else:
-            return False
+            return 0
 
     def extract_data(self, m_widget):
         # Scan each row:
@@ -181,9 +196,14 @@ class App(tk.Tk):
         for i in range(1, len(m_widget._widgets)):  # range(1, rows)
             row = [m_widget._widgets[i][1].get(), m_widget._widgets[i][2].get(), m_widget._widgets[i][3].get()]
             invalid_row = self.invalid_row(row)
-            if invalid_row == True:
+            if invalid_row == -2:
+                info = 'Please check your data.\n'
+                info += 'Ensure that your decimal values have a comma as a decimal mark.'
+                tkinter.messagebox.showerror('Statistics', info)
+                return -1
+            elif invalid_row == 1:
                 tkinter.messagebox.showinfo('Statistics', 'You can\'t have both empty and non-empty values in a row!')
-                return False
+                return -1
             elif invalid_row == -1:
                 break
             else:
@@ -206,15 +226,17 @@ class App(tk.Tk):
             else:
                 pretty_p_v_cor.append(str(rounded))
         dataset_bon = list(zip(pretty_cor_grps, pretty_p_v_cor))
-        return pd.DataFrame(data=dataset_bon, columns=['Groups', 'p value'])
+        return pd.DataFrame(data=dataset_bon, columns=['Groups', 'p-value'])
 
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
         dataframe = self.create_pandas_DataFrame(m_widget)
+        if dataframe.empty:
+            return
         # print(dataframe)
         # The table must have at least 3 rows:
-        if len(dataframe) < 2:  # number of rows = len(dataframe)
-            tkinter.messagebox.showinfo('Two-way ANOVA', 'You must have at least 2 values for each group.')
+        if len(dataframe) < 3:  # number of rows = len(dataframe)
+            tkinter.messagebox.showinfo('Two-way ANOVA', 'You must have at least 3 values for each group.')
             return
 
         # I will use "dependent" for the dependent variable, "twoplus" for the group that has at least 2 variables
@@ -224,24 +246,31 @@ class App(tk.Tk):
         # print(dataframe.ix[:, 1])  # Second column
         # print(dataframe.ix[:, 2])  # Third column
         column_names = list(dataframe)  # unsorted
-        # unsorted_dict = {0: [len(dataframe.ix[:, 0].unique()), column_names[0]],
-        #                  1: [len(dataframe.ix[:, 1].unique()), column_names[1]],
-        #                  2: [len(dataframe.ix[:, 2].unique()), column_names[2]]}
-        # sorted_dict_list = sorted(unsorted_dict.items(), key=operator.itemgetter(1, 0))
-        # print(sorted_dict_list)  # e.g [(1, [2, 'sup']), (2, [3, 'dose']), (0, [43, 'len'])]
-        # dependent = dataframe.ix[:, sorted_dict_list[2][0]]  # The dependent variable (with the most unique values)
-        # twoplus = dataframe.ix[:, sorted_dict_list[0][0]]  # The variable with the 2 or more unique values
-        # threeplus = dataframe.ix[:, sorted_dict_list[1][0]]  # The variable with the 3 or more unique values, subject
-        #  to Bonferroni's adjustment
-        c1 = dataframe[column_names[0]]
-        c2 = dataframe[column_names[1]]
-        c3 = dataframe[column_names[2]]
+        # ~~~ Each column name must start with a letter! ~~~
+        pattern = re.compile(r'^[a-z]')
+        try:
+            for x in column_names:
+                m = re.search(pattern, x)
+                # ~~~ If m doesn't exist, it's because a variable name doesn't begin with a-z or A-Z, thus the assertion
+                # fails.
+                assert m
+        except:
+            dataframe.columns = ['a', 'b', 'c']
+            column_names = list(dataframe)
+
+        wiz = ach_generic.TwoWayAnovaWizard(self, settings=tuple(x for x in column_names))
+        dependent_var = wiz.result[0]  # just the column name
+        posthoc_var = wiz.result[1]  # just the column name
+        # ~~~ Get the other two variables from the column_names list ~~~
+        temp_list = [str(x) for x in column_names if not str(x) == dependent_var]
+        second_var = temp_list[0]
+        third_var = temp_list[1]
 
         # statmodels uses R-like model notation.
         # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
         # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
         # formula = '%s ~ C(%s) + C(%s)' % (sorted_dict_list[2][1][1], sorted_dict_list[0][1][1], sorted_dict_list[1][1][1])
-        formula = '%s ~ C(%s) + C(%s)' % (column_names[0], column_names[1], column_names[2])
+        formula = '%s ~ C(%s) + C(%s)' % (dependent_var, second_var, third_var)
         print(formula)
         model = ols(formula, dataframe).fit()
         aov_table1 = anova_lm(model, typ=2)
@@ -249,16 +278,32 @@ class App(tk.Tk):
         print(aov_table1)
 
         # ~~~ Bonferroni's correction ~~~
-        p_v_cor, corresponding_groups = multiple_comparisons_with_bonferroni(c1, c3)
-        dataframe_bon = self.create_bonferroni_dataframe(p_v_cor, corresponding_groups)
-        print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
-        print(dataframe_bon)
+        if not posthoc_var == '':
+            # ~~~ 1st variable: dependent_var, 2nd variable: c2_var, 3rd variable: posthoc_var ~~~
+            c1 = dataframe[dependent_var]
+            c2_var = [x for x in column_names if not x in [dependent_var, posthoc_var]][0]
+            c2 = dataframe[c2_var]
+            c3 = dataframe[posthoc_var]
+            # assert column c3 had at least 3 unique values
+            if len(c3.unique()) < 3:
+                info = 'Post hoc test \'Bonferroni\' should have at least 3 values in column \'%s\'' % posthoc_var
+                tk.messagebox.showerror('Statistics', info)
+            else:
+                p_v_cor, corresponding_groups = multiple_comparisons_with_bonferroni(c1, c3)
+                dataframe_bon = self.create_bonferroni_dataframe(p_v_cor, corresponding_groups)
+                print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
+                print(dataframe_bon)
+        else:
+            c1 = dataframe[dependent_var]
+            c2 = dataframe[second_var]
+            c3 = dataframe[third_var]
 
         # Plots:
         plt.close('all')
         # fig1 = interaction_plot(threeplus, twoplus, dependent, colors=['red', 'blue'], markers=['D', '^'], ms=10)
         # fig2 = sm.qqplot(model.resid, line='s')
 
+        # ~~~ plotting fails when posthoc_var is 'supp' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         fig, axx = plt.subplots(nrows=2)  # create two subplots, one in each row
         interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
         sm.qqplot(model.resid, line='s', ax=axx[1])
@@ -286,7 +331,6 @@ class App(tk.Tk):
         # frmResults.mainloop()
 
 
-
 class SimpleTable(tk.Canvas):
     def __init__(self, parent, rows=10, columns=2):
         # 'self' means tk.Canvas!
@@ -312,6 +356,8 @@ class SimpleTable(tk.Canvas):
         ### canvas end
         self._widgets = []
 
+        vcmd = (self.register(self.onValidate), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
+
         for row in range(rows + 1):
             current_row = []
             for column in range(columns + 1):
@@ -323,13 +369,14 @@ class SimpleTable(tk.Canvas):
                     label.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
                     current_row.append(label)
                     continue
-                entry = tk.Entry(frame, borderwidth=0, width=22)
+                entry = tk.Entry(frame, borderwidth=0, width=22, validate='focusout', validatecommand=vcmd)
                 # entry.insert(0, "%s.%s" % (row, column))  # default Entry text
                 entry.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
                 current_row.append(entry)
                 entry.bind('<Return>', self.onEnter)
                 entry.bind('<Down>', self.onEnter)
                 entry.bind('<Up>', self.onUp)
+                # entry.bind('<FocusOut>', self.lost_focus)
             self._widgets.append(current_row)
 
         for column in range(columns):
@@ -339,6 +386,28 @@ class SimpleTable(tk.Canvas):
         # print(self._widgets[1][1]['width'])
         # print(self._widgets[1][2]['width'])
         self.config(width=450)  # change the width of the canvas
+
+    def onValidate(self, action, index, value_if_allowed,
+                   prior_value, text, validation_type, trigger_type, widget_name):
+        # print ('###')
+        # print ('action:', action)
+        # print ('index:', index)
+        # print ('value_if_allowed', value_if_allowed)
+        # print('prior_value:', prior_value)
+        # print('text:', text)
+        # print('validation_type:', validation_type)
+        # print('trigger_type:', trigger_type)
+        # print('widget_name:', widget_name, '\n')
+        # ~~~ regex (?![\s]) matches empty string '' ~~~
+        # ~~~ it should match: empty strings, '0.55', '55.', '.55', 'ASDsad' ~~~
+        # ~~~ it should NOT match: '0..55'
+        # m = re.search('(\d{1,10}\.\d{0,10})|(\d{1,10})|(?![\s])', value_if_allowed)  # just for decimal and empty
+        m = re.search('^(\d+)?\.{2,}(\d+)?$', value_if_allowed)
+        if not m:
+            return True
+        else:
+            self.bell()
+            return False
 
     def onEnter(self, event):
         nextWidget = event.widget.tk_focusNext().tk_focusNext().tk_focusNext()  # 3 focusnext for 3 columns

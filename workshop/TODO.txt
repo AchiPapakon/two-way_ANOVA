@@ -1,5 +1,5 @@
 * I shouldn't be able to input 0000.23 -> during lost focus
-* Create dialogs for Load & Save
+* Create dialog for Save
 * On Load, take care of null, empty values
 
 spy: disambiguate lambda functions!
