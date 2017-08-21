@@ -53,30 +53,21 @@ class App(tk.Tk):
         dataframe.index += 1
         dataframe.to_csv("data/test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
 
-    def convert_to_int_or_float(self, lst):
-        if lst == []:
-            return lst
-        new_lst = lst
+    def convert_to_float(self, m_list):
+        if m_list is []:
+            return m_list
+        new_list = m_list
         try:
             i = 0
-            for value in new_lst:
-                new_lst[i] = int(value)  # If this line throws exception, then the following line(s) of the try
-                # block will not execute.
+            for x in new_list:
+                new_list[i] = float(x)
                 i += 1
-            print('Successfully converted \"%s\" to integer' % (str(lst[0])))
+
+            print('Successfully converted \"%s\" to float' % (str(m_list[0])))
         except ValueError:
-            new_lst = lst
-            print('Cannot convert \"%s\" to integer' % (str(lst[0])))
-            try:
-                i = 0
-                for value in new_lst:
-                    new_lst[i] = float(value)
-                    i += 1
-                print('Successfully converted \"%s\" to float' % (str(lst[0])))
-            except ValueError:
-                new_lst = lst
-                print('Cannot convert \"%s\" to float' % (str(lst[0])))
-        return new_lst
+            new_list = m_list
+            print('Cannot convert \"%s\" to float; keeping string' % (str(m_list[0])))
+        return new_list
 
     def create_pandas_DataFrame(self, m_widget):
         data = self.extract_data(m_widget)
@@ -89,9 +80,9 @@ class App(tk.Tk):
             column1 = data[column1_name]
             column2 = data[column2_name]
             column3 = data[column3_name]
-            column1 = self.convert_to_int_or_float(column1)
-            column2 = self.convert_to_int_or_float(column2)
-            column3 = self.convert_to_int_or_float(column3)
+            column1 = self.convert_to_float(column1)
+            column2 = self.convert_to_float(column2)
+            column3 = self.convert_to_float(column3)
             dataSet = list(zip(column1, column2, column3))
             dataframe = pd.DataFrame(data=dataSet, columns=[column1_name, column2_name, column3_name])
             return dataframe
