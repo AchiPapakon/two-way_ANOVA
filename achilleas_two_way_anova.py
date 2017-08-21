@@ -237,7 +237,7 @@ class App(tk.Tk):
                 # fails.
                 assert m
         except:
-            dataframe.columns = ['a', 'b', 'c']
+            dataframe.columns = ['column_1', 'column_2', 'column_3']
             column_names = list(dataframe)
 
         # ~~~ Launch the two-way ANOVA wizard ~~~
@@ -298,10 +298,15 @@ class App(tk.Tk):
         interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
         plt.show()
 
-        plt.scatter(c3, c1, color='red')
+        if c3.dtypes == float:
+            plt.scatter(c3, c1, color='red')
+        else:
+            # Convert categorical variables to numbers
+            from sklearn.preprocessing import LabelEncoder
+            labelencoder = LabelEncoder()
+            c3_encoded = labelencoder.fit_transform(c3)
+            plt.scatter(c3_encoded, c1, color='red')
         plt.title('Outliers')
-
-        # plt.tight_layout()
         plt.show()
 
 
