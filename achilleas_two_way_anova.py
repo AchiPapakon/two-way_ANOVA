@@ -393,7 +393,7 @@ class SimpleTable(tk.Canvas):
         # ~~~ it should match: empty strings, '0.55', '55.', '.55', 'ASDsad' ~~~
         # ~~~ it should NOT match: '0..55'
         # m = re.search('(\d{1,10}\.\d{0,10})|(\d{1,10})|(?![\s])', value_if_allowed)  # just for decimal and empty
-        m = re.search('^(\d+)?\.{2,}(\d+)?$', value_if_allowed)
+        m = re.search('^(\d+)?\.(\d+)?\.(\d+)?$', value_if_allowed)
         if not m:
             return True
         else:
