@@ -160,14 +160,7 @@ class App(tk.Tk):
             tkinter.messagebox.showerror('Statistics', info)
 
     def invalid_row(self, strList):
-        # ~~~ check if the items in strList validate ~~~
-        for x in strList:
-            m = re.search('^(\d+)?\.{2,}(\d+)?$', x)
-            if not m:
-                pass
-            else:
-                return -2
-
+        global regex_str
         # ~~~ ''.join(strList) concatenates all the list values ~~~
         if ''.join(strList) == '':
             # ~~~ if all the list values are empty ~~~
@@ -187,12 +180,12 @@ class App(tk.Tk):
         for i in range(1, len(m_widget._widgets)):  # range(1, rows)
             row = [m_widget._widgets[i][1].get(), m_widget._widgets[i][2].get(), m_widget._widgets[i][3].get()]
             invalid_row = self.invalid_row(row)
-            if invalid_row == -2:
-                info = 'Please check your data.\n'
-                info += 'Ensure that your decimal values have a comma as a decimal mark.'
-                tkinter.messagebox.showerror('Statistics', info)
-                return -1
-            elif invalid_row == 1:
+            # if invalid_row == -2:
+            #     info = 'Please check your data.\n'
+            #     info += 'Ensure that your decimal values have a comma as a decimal mark.'
+            #     tkinter.messagebox.showerror('Statistics', info)
+            #     return -1
+            if invalid_row == 1:
                 tkinter.messagebox.showinfo('Statistics', 'You can\'t have both empty and non-empty values in a row!')
                 return -1
             elif invalid_row == -1:
@@ -234,8 +227,6 @@ class App(tk.Tk):
         # and "threeplus" for the group that has at least 3 variables
 
         # print(dataframe.ix[:, 0])  # First column
-        # print(dataframe.ix[:, 1])  # Second column
-        # print(dataframe.ix[:, 2])  # Third column
         column_names = list(dataframe)  # unsorted
         # ~~~ Each column name must start with a letter! ~~~
         pattern = re.compile(r'^[a-z]')
@@ -249,13 +240,19 @@ class App(tk.Tk):
             dataframe.columns = ['a', 'b', 'c']
             column_names = list(dataframe)
 
+        # ~~~ Launch the two-way ANOVA wizard ~~~
         wiz = ach_generic.TwoWayAnovaWizard(self, settings=tuple(x for x in column_names))
+        if wiz.result is None:  # The user presses Cancel
+            return
         dependent_var = wiz.result[0]  # just the column name
         posthoc_var = wiz.result[1]  # just the column name
         # ~~~ Get the other two variables from the column_names list ~~~
         temp_list = [str(x) for x in column_names if not str(x) == dependent_var]
         second_var = temp_list[0]
         third_var = temp_list[1]
+        if not dataframe.dtypes[dependent_var] == float:
+            tk.messagebox.showerror('Statistics', 'The dependent variable must be continuous')
+            return
 
         # statmodels uses R-like model notation.
         # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
@@ -295,31 +292,17 @@ class App(tk.Tk):
         # fig2 = sm.qqplot(model.resid, line='s')
 
         # ~~~ plotting fails when posthoc_var is 'supp' ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        fig, axx = plt.subplots(nrows=2)  # create two subplots, one in each row
-        interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
-        sm.qqplot(model.resid, line='s', ax=axx[1])
-
-        plt.tight_layout()
+        # fig, axx = plt.subplots(nrows=2)  # create two subplots, one in each row
+        # interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
+        # sm.qqplot(model.resid, line='s', ax=axx[1])
+        interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
         plt.show()
 
-        # new Form to display the results:
-        # frmResults = tk.Tk()
-        #
-        # w = self.Canvas['width']  # width
-        # h = self.Canvas['height']  # height
-        #
-        # # get screen width and height
-        # ws = frmResults.winfo_screenwidth()  # width of the screen
-        # hs = frmResults.winfo_screenheight()  # height of the screen
-        #
-        # # calculate x and y coordinates for the Tk window
-        # x = (ws / 2) - (w / 2)
-        # y = (hs / 2) - (h / 2)
-        #
-        # # set the dimensions of the screen
-        # # and where it is placed
-        # frmResults.geometry('%dx%d+%d+%d' % (w, h, x, y))
-        # frmResults.mainloop()
+        plt.scatter(c3, c1, color='red')
+        plt.title('Outliers')
+
+        # plt.tight_layout()
+        plt.show()
 
 
 class SimpleTable(tk.Canvas):
@@ -347,8 +330,6 @@ class SimpleTable(tk.Canvas):
         ### canvas end
         self._widgets = []
 
-        vcmd = (self.register(self.onValidate), '%d', '%i', '%P', '%s', '%S', '%v', '%V', '%W')
-
         for row in range(rows + 1):
             current_row = []
             for column in range(columns + 1):
@@ -360,7 +341,7 @@ class SimpleTable(tk.Canvas):
                     label.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
                     current_row.append(label)
                     continue
-                entry = tk.Entry(frame, borderwidth=0, width=22, validate='focusout', validatecommand=vcmd)
+                entry = tk.Entry(frame, borderwidth=0, width=22)
                 # entry.insert(0, "%s.%s" % (row, column))  # default Entry text
                 entry.grid(row=row, column=column, sticky="nsew", padx=1, pady=1)
                 current_row.append(entry)
@@ -377,28 +358,6 @@ class SimpleTable(tk.Canvas):
         # print(self._widgets[1][1]['width'])
         # print(self._widgets[1][2]['width'])
         self.config(width=450)  # change the width of the canvas
-
-    def onValidate(self, action, index, value_if_allowed,
-                   prior_value, text, validation_type, trigger_type, widget_name):
-        # print ('###')
-        # print ('action:', action)
-        # print ('index:', index)
-        # print ('value_if_allowed', value_if_allowed)
-        # print('prior_value:', prior_value)
-        # print('text:', text)
-        # print('validation_type:', validation_type)
-        # print('trigger_type:', trigger_type)
-        # print('widget_name:', widget_name, '\n')
-        # ~~~ regex (?![\s]) matches empty string '' ~~~
-        # ~~~ it should match: empty strings, '0.55', '55.', '.55', 'ASDsad' ~~~
-        # ~~~ it should NOT match: '0..55'
-        # m = re.search('(\d{1,10}\.\d{0,10})|(\d{1,10})|(?![\s])', value_if_allowed)  # just for decimal and empty
-        m = re.search('^(\d+)?\.(\d+)?\.(\d+)?$', value_if_allowed)
-        if not m:
-            return True
-        else:
-            self.bell()
-            return False
 
     def onEnter(self, event):
         nextWidget = event.widget.tk_focusNext().tk_focusNext().tk_focusNext()  # 3 focusnext for 3 columns

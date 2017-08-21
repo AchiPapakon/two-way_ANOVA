@@ -1,19 +1,10 @@
-* I shouldn't be able to input 0000.23 -> during lost focus
 * Create dialog for Save
-* On Load, take care of null, empty values
-
-spy: disambiguate lambda functions!
+* Remove regex check but demand dependent variable column to be all floats.
 
 Features:
-* (ttest) if a cell is empty, when you click save or click the "t-test" button, that cell is filled with zero.
-
-+ I use the column with the most unique values as the dependent variable
-
 * Double click in the labels changes the values.
 
 * Hovering the cursor over the labels changes the cursor to the pointer of the "Entry" widget.
-
-* x-axis should have for this data set only 3 values for "supp"
 
 * Create a separate section in the GUI for the Output.
 	* Create a separete window in the GUI for the Output.
