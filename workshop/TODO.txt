@@ -1,6 +1,3 @@
-* Create dialog for Save
-* Remove regex check but demand dependent variable column to be all floats.
-
 Features:
 * Double click in the labels changes the values.
 

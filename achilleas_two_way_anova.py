@@ -23,7 +23,7 @@ import statsmodels.api as sm
 
 class App(tk.Tk):
     def __init__(self):
-        rows = 100
+        rows = 200
         columns = 3
         self.settings_string_list = None
         tk.Tk.__init__(self)
@@ -49,9 +49,30 @@ class App(tk.Tk):
         dataframe = self.create_pandas_DataFrame(m_widget)
         if dataframe.empty:
             return
-        print(dataframe.dtypes)
+        # print(dataframe.dtypes)
+
+        # ~~~ The Wizard saves settings between first and subsequent dialogs ~~~
+        # wiz = ach_generic.LoadWizard(self, self.settings_string_list)
+        # self.settings_string_list = wiz.result
+        # if self.settings_string_list is None:
+        #     return
+        #
+        # wiz_settings = {'title': self.settings_string_list[0],
+        #                 'delimiter': self.settings_string_list[1],
+        #                 'qualifier': self.settings_string_list[2]}
+
+        # ~~~ saveFileDialog ~~~
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+        fpath = tkinter.filedialog.asksaveasfilename(title='Select a dataset file...', initialdir=dir_path,
+                                                     initialfile='dataset1.csv',
+                                                     filetypes=[('CSV files', '*.csv'), ('All files', '*.*')])
+        if fpath == '':
+            return
+
         dataframe.index += 1
-        dataframe.to_csv("data/test_output.csv", quoting=csv.QUOTE_NONNUMERIC)
+        # dataframe.to_csv(fpath, sep=wiz_settings['delimiter'], quotechar=wiz_settings['qualifier'],
+        #                  header=['a', 'b', 'c'], quoting=csv.QUOTE_NONNUMERIC)
+        dataframe.to_csv(fpath, sep=',', quotechar='\"', header=True, quoting=csv.QUOTE_NONNUMERIC)
 
     def convert_to_float(self, m_list):
         if m_list is []:
@@ -104,7 +125,7 @@ class App(tk.Tk):
         # ~~~ The Wizard saves settings between first and subsequent dialogs ~~~
         wiz = ach_generic.LoadWizard(self, self.settings_string_list)
         self.settings_string_list = wiz.result
-        if self.settings_string_list == None:
+        if self.settings_string_list is None:
             return
 
         wiz_settings = {'title': self.settings_string_list[0],
@@ -130,7 +151,7 @@ class App(tk.Tk):
                         else:
                             i += 1
                             for j in range(1, 4):
-                                m_widget._widgets[0][j].config(text=j)
+                                m_widget._widgets[0][j].config(text='column_' + str(j))
                                 m_widget._widgets[i][j].delete(0, 'end')
                                 m_widget._widgets[i][j].insert(0, row[j])
                     else:
@@ -160,7 +181,6 @@ class App(tk.Tk):
             tkinter.messagebox.showerror('Statistics', info)
 
     def invalid_row(self, strList):
-        global regex_str
         # ~~~ ''.join(strList) concatenates all the list values ~~~
         if ''.join(strList) == '':
             # ~~~ if all the list values are empty ~~~
@@ -189,6 +209,8 @@ class App(tk.Tk):
                 tkinter.messagebox.showinfo('Statistics', 'You can\'t have both empty and non-empty values in a row!')
                 return -1
             elif invalid_row == -1:
+                if i == 1:  # if the first row is empty:
+                    return -1
                 break
             else:
                 table[column1].append(row[0])
@@ -257,7 +279,6 @@ class App(tk.Tk):
         # statmodels uses R-like model notation.
         # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
         # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
-        # formula = '%s ~ C(%s) + C(%s)' % (sorted_dict_list[2][1][1], sorted_dict_list[0][1][1], sorted_dict_list[1][1][1])
         formula = '%s ~ C(%s) + C(%s)' % (dependent_var, second_var, third_var)
         print(formula)
         model = ols(formula, dataframe).fit()
@@ -296,8 +317,9 @@ class App(tk.Tk):
         # interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
         # sm.qqplot(model.resid, line='s', ax=axx[1])
         interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
-        plt.show()
+        # plt.show()
 
+        plt.figure()
         if c3.dtypes == float:
             plt.scatter(c3, c1, color='red')
         else:
@@ -353,8 +375,13 @@ class SimpleTable(tk.Canvas):
                 entry.bind('<Return>', self.onEnter)
                 entry.bind('<Down>', self.onEnter)
                 entry.bind('<Up>', self.onUp)
+                entry.bind('<Shift-Return>', self.onUp)
                 # entry.bind('<FocusOut>', self.lost_focus)
             self._widgets.append(current_row)
+
+        self._widgets[0][1]['text'] = 'column_1'
+        self._widgets[0][2]['text'] = 'column_2'
+        self._widgets[0][3]['text'] = 'column_3'
 
         for column in range(columns):
             self.grid_columnconfigure(column, weight=1)
