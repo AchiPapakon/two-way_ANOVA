@@ -21,11 +21,14 @@ import statsmodels.api as sm
 # from statsmodels.sandbox.stats.multicomp import multipletests
 
 
+# Change App -> self.verbose = True for debugging.
+
 class App(tk.Tk):
     def __init__(self):
         rows = 200
         columns = 3
         self.settings_string_list = None
+        self.verbose = False
         tk.Tk.__init__(self)
         # draw Frame above the table which contains the button
         frame = tk.Frame(self)
@@ -84,10 +87,12 @@ class App(tk.Tk):
                 new_list[i] = float(x)
                 i += 1
 
-            print('Successfully converted \"%s\" to float' % (str(m_list[0])))
+            if self.verbose:
+                print('Successfully converted \"%s\" to float' % (str(m_list[0])))
         except ValueError:
             new_list = m_list
-            print('Cannot convert \"%s\" to float; keeping string' % (str(m_list[0])))
+            if self.verbose:
+                print('Cannot convert \"%s\" to float; keeping string' % (str(m_list[0])))
         return new_list
 
     def create_pandas_DataFrame(self, m_widget):
@@ -160,7 +165,8 @@ class App(tk.Tk):
                             m_widget._widgets[i][j].delete(0, 'end')
                             m_widget._widgets[i][j].insert(0, row[j])
                     i += 1
-                    print(row)
+                    if self.verbose:
+                        print(row)
                 # Populate the rest of the table with zeros:
                 # # i count is already +1:
                 while i < m_rows + 1:
@@ -216,7 +222,8 @@ class App(tk.Tk):
                 table[column1].append(row[0])
                 table[column2].append(row[1])
                 table[column3].append(row[2])
-        print(table)
+        if self.verbose:
+            print(table)
         return table
 
     def create_bonferroni_dataframe(self, m_p_values, m_corresponding_groups):
@@ -232,7 +239,8 @@ class App(tk.Tk):
             else:
                 pretty_p_v_cor.append(str(rounded))
         dataset_bon = list(zip(pretty_cor_grps, pretty_p_v_cor))
-        return pd.DataFrame(data=dataset_bon, columns=['Groups', 'p-value'])
+        row_names = [''] * len(m_corresponding_groups)
+        return pd.DataFrame(data=dataset_bon, columns=['Groups', 'p-value'], index=row_names)
 
     def btnTwoWayAnova_Click(self, m_widget):
         # Create a pandas DataFrame from the GUI table:
@@ -289,15 +297,18 @@ class App(tk.Tk):
         # ~~~ Bonferroni's correction ~~~
         if not posthoc_var == '':
             # ~~~ 1st variable: dependent_var, 2nd variable: c2_var, 3rd variable: posthoc_var ~~~
-            c1 = dataframe[dependent_var]
             c2_var = [x for x in column_names if not x in [dependent_var, posthoc_var]][0]
-            c2 = dataframe[c2_var]
-            c3 = dataframe[posthoc_var]
+            second_var = c2_var
+            third_var = posthoc_var
+            c1 = dataframe[dependent_var]
+            c2 = dataframe[second_var]
+            c3 = dataframe[third_var]
             # assert column c3 had at least 3 unique values
             if len(c3.unique()) < 3:
                 info = 'Post hoc test \'Bonferroni\' should have at least 3 values in column \'%s\'' % posthoc_var
                 tk.messagebox.showerror('Statistics', info)
             else:
+                row_names = [''] * len(c3.unique())
                 p_v_cor, corresponding_groups = multiple_comparisons_with_bonferroni(c1, c3)
                 dataframe_bon = self.create_bonferroni_dataframe(p_v_cor, corresponding_groups)
                 print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
@@ -319,16 +330,29 @@ class App(tk.Tk):
         interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
         # plt.show()
 
+        # Scatter plot
+        # plt.figure()
+        # if c3.dtypes == float:
+        #     plt.scatter(c3, c1, color='red')
+        # else:
+        #     # Convert categorical variables to numbers
+        #     from sklearn.preprocessing import LabelEncoder
+        #     labelencoder = LabelEncoder()
+        #     c3_encoded = labelencoder.fit_transform(c3)
+        #     plt.scatter(c3_encoded, c1, color='red')
+        # plt.title('Outliers')
+
+        # Boxplot
         plt.figure()
-        if c3.dtypes == float:
-            plt.scatter(c3, c1, color='red')
-        else:
-            # Convert categorical variables to numbers
-            from sklearn.preprocessing import LabelEncoder
-            labelencoder = LabelEncoder()
-            c3_encoded = labelencoder.fit_transform(c3)
-            plt.scatter(c3_encoded, c1, color='red')
-        plt.title('Outliers')
+        temp = []
+        for i in range(len(c3.unique())):
+            temp2 = c1[c3 == c3.unique()[i]]
+            temp.append(temp2)
+        plt.boxplot(temp)
+        plt.title('Outlier detection')
+        plt.xlabel(third_var)
+        plt.ylabel(dependent_var)
+
         plt.show()
 
 

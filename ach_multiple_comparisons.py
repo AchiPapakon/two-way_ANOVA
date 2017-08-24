@@ -7,6 +7,12 @@ glb_categories = []  # List of unique categorical values
 
 # ~~~ the auto pilot method ~~~
 def multiple_comparisons_with_bonferroni(list1, list2):
+    # Initialization
+    global glb_split_groups_total_size
+    global glb_categories
+    glb_split_groups_total_size = 0
+    glb_categories = []
+
     groups = split_group(list1, list2)
     p_values, corresponding_groups = t_multiple_comparisons(groups)
     return bonferroni(p_values), corresponding_groups  # tuple
