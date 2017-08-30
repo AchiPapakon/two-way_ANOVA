@@ -13,7 +13,7 @@ def convert_to_3places(float_):
 
 
 class Dialog(Toplevel):
-    def __init__(self, parent, settings=None, title = None):
+    def __init__(self, parent, settings=None, title=None, plots=None):
         Toplevel.__init__(self, parent)
         self.transient(parent)
 
@@ -23,6 +23,7 @@ class Dialog(Toplevel):
         self.parent = parent
         self.result = None
         self.in_settings = settings  # ach: optional argument for settings input
+        self.in_plots = plots
 
         body = Frame(self)
         self.initial_focus = self.body(body)
@@ -187,6 +188,39 @@ class TwoWayAnovaWizard(Dialog):
 
     def apply(self):
         self.result = [self.dependent_value.get(), self.posthoc_value.get()]
+
+
+class ResultsPopup(Dialog):
+    def body(self, master):
+        master.configure(background='white')
+        # print(self.in_settings)
+        text_1 = Text(master, relief=FLAT)
+        text_1.insert('end', self.in_settings)
+        # text_1.pack(side='left')
+        text_1.grid(row=0, column=0, sticky='N')
+        text_1.config(state=DISABLED)
+
+        # a tk.DrawingArea
+        from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+        canvas = FigureCanvasTkAgg(self.in_plots[0], master=master)
+        canvas.show()
+        # canvas.get_tk_widget().pack(side='right')
+        canvas.get_tk_widget().grid(row=0, column=1)
+
+        try:
+            canvas2 = FigureCanvasTkAgg(self.in_plots[1], master=master)
+            canvas2.show()
+            canvas2.get_tk_widget().grid(row=1, column=1)
+        except:
+            pass
+
+    def buttonbox(self):
+        """ override the buttonbox """
+        pass
+
+    def apply(self):
+        pass
+        # self.result =
 
 if __name__ == '__main__':
     root = Tk()

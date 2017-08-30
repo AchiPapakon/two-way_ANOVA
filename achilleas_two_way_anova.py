@@ -34,7 +34,7 @@ class App(tk.Tk):
         frame = tk.Frame(self)
         frame.pack(side='top', pady=(0, 5))
         # draw Buttons
-        btnTwoWayAnova = tk.Button(frame, text="Two way ANOVA\nwith Bonferroni's", takefocus=False,
+        btnTwoWayAnova = tk.Button(frame, text="Two way ANOVA\nwith Bonferroni's correction", takefocus=False,
                                 command=lambda: self.btnTwoWayAnova_Click(t))
         btnTwoWayAnova.pack(side='top')
         # draw Table
@@ -288,11 +288,16 @@ class App(tk.Tk):
         # Two-way ANOVA with interactions: formula = 'len ~ C(supp) + C(dose) + C(supp):C(dose)'
         # Two-way ANOVA without interactions: formula = 'len ~ C(supp) + C(dose)'
         formula = '%s ~ C(%s) + C(%s)' % (dependent_var, second_var, third_var)
-        print(formula)
+        # print(formula)
         model = ols(formula, dataframe).fit()
         aov_table1 = anova_lm(model, typ=2)
-        print('\n~~~ Two-way ANOVA without interactions ~~~')
-        print(aov_table1)
+        # print('\n~~~ Two-way ANOVA without interactions ~~~')
+        # print(aov_table1)
+        results_string = ''
+        results_string += '~~~ Two-way ANOVA without interactions ~~~\n'
+        results_string += formula + '\n'
+        results_string += aov_table1.to_string()
+        results_string += '\n'
 
         # ~~~ Bonferroni's correction ~~~
         if not posthoc_var == '':
@@ -311,12 +316,16 @@ class App(tk.Tk):
                 row_names = [''] * len(c3.unique())
                 p_v_cor, corresponding_groups = multiple_comparisons_with_bonferroni(c1, c3)
                 dataframe_bon = self.create_bonferroni_dataframe(p_v_cor, corresponding_groups)
-                print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
-                print(dataframe_bon)
+                # print('\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~')
+                # print(dataframe_bon)
+                results_string += '\n~~~ Post hoc test: Multiple comparisons with Bonferroni correction ~~~\n'
+                results_string += dataframe_bon.to_string()
         else:
             c1 = dataframe[dependent_var]
             c2 = dataframe[second_var]
             c3 = dataframe[third_var]
+
+
 
         # Plots:
         plt.close('all')
@@ -327,7 +336,9 @@ class App(tk.Tk):
         # fig, axx = plt.subplots(nrows=2)  # create two subplots, one in each row
         # interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
         # sm.qqplot(model.resid, line='s', ax=axx[1])
-        interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+        plots = []
+        plot1 = interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+        plots.append(plot1)
         # plt.show()
 
         # Scatter plot
@@ -343,17 +354,19 @@ class App(tk.Tk):
         # plt.title('Outliers')
 
         # Boxplot
-        plt.figure()
+        fig_boxplot = plt.figure()
         temp = []
         for i in range(len(c3.unique())):
             temp2 = c1[c3 == c3.unique()[i]]
             temp.append(temp2)
         plt.boxplot(temp)
-        plt.title('Outlier detection')
-        plt.xlabel(third_var)
-        plt.ylabel(dependent_var)
+        plt.title('Outlier detection', figure=fig_boxplot)
+        plt.xlabel(third_var, figure=fig_boxplot)
+        plt.ylabel(dependent_var, figure=fig_boxplot)
 
-        plt.show()
+        plots.append(fig_boxplot)
+        results_popup = ach_generic.ResultsPopup(self, settings=results_string, plots=plots)
+        # plt.show()
 
 
 class SimpleTable(tk.Canvas):
