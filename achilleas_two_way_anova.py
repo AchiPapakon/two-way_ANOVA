@@ -294,7 +294,7 @@ class App(tk.Tk):
         # print('\n~~~ Two-way ANOVA without interactions ~~~')
         # print(aov_table1)
         results_string = ''
-        results_string += '~~~ Two-way ANOVA without interactions ~~~\n'
+        results_string += '\n~~~ Two-way ANOVA without interactions ~~~\n'
         results_string += formula + '\n'
         results_string += aov_table1.to_string()
         results_string += '\n'
@@ -337,8 +337,12 @@ class App(tk.Tk):
         # interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10, ax=axx[0])
         # sm.qqplot(model.resid, line='s', ax=axx[1])
         plots = []
-        plot1 = interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
-        plots.append(plot1)
+        try:
+            plot1 = interaction_plot(c3, c2, c1, colors=['red', 'blue'], markers=['D', '^'], ms=10)
+            plots.append(plot1)
+        except Exception as e:
+            print('Error in plot1:', str(e))
+
         # plt.show()
 
         # Scatter plot
@@ -354,17 +358,20 @@ class App(tk.Tk):
         # plt.title('Outliers')
 
         # Boxplot
-        fig_boxplot = plt.figure()
-        temp = []
-        for i in range(len(c3.unique())):
-            temp2 = c1[c3 == c3.unique()[i]]
-            temp.append(temp2)
-        plt.boxplot(temp)
-        plt.title('Outlier detection', figure=fig_boxplot)
-        plt.xlabel(third_var, figure=fig_boxplot)
-        plt.ylabel(dependent_var, figure=fig_boxplot)
+        try:
+            fig_boxplot = plt.figure()
+            temp = []
+            for i in range(len(c3.unique())):
+                temp2 = c1[c3 == c3.unique()[i]]
+                temp.append(temp2)
+            plt.boxplot(temp)
+            plt.title('Outlier detection', figure=fig_boxplot)
+            plt.xlabel(third_var, figure=fig_boxplot)
+            plt.ylabel(dependent_var, figure=fig_boxplot)
+            plots.append(fig_boxplot)
+        except Exception as e:
+            print('Error in Boxplot:', str(e))
 
-        plots.append(fig_boxplot)
         results_popup = ach_generic.ResultsPopup(self, settings=results_string, plots=plots)
         # plt.show()
 
