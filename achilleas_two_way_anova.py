@@ -456,6 +456,9 @@ class SimpleTable(tk.Canvas):
         # widget.configure(text=value)
 
 
-if __name__ == "__main__":
+def main():
     app = App()
     app.mainloop()
+
+if __name__ == "__main__":
+    main()
