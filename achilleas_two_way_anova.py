@@ -1,3 +1,15 @@
+"""
+Coded by Achilleas Papakonstantinou @ 2017
+https://github.com/AchiPapakon/two-way_ANOVA
+
+MSc Thesis for
+    University of Thessaly, School of Medicine
+    Postgraduate Programme
+    "Research Methodology in Biomedicine, Biostatistics and Clinical Bioinformatics"
+    http://biomath.med.uth.gr/
+"""
+
+
 from __future__ import division   # proper division 5/2 = 2.5
 
 from ach_multiple_comparisons import multiple_comparisons_with_bonferroni
