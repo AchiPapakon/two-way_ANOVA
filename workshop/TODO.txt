@@ -1,7 +1,0 @@
-Features:
-* Double click in the labels changes the values.
-
-* Hovering the cursor over the labels changes the cursor to the pointer of the "Entry" widget.
-
-* Create a separate section in the GUI for the Output.
-	* Create a separete window in the GUI for the Output.
